@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#C1552B" />
+<title>Tomchi Somsa — Boshqaruv</title>
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icons/icon-180.png" />
+<link rel="icon" href="icons/icon-32.png" />
+<style>
+  :root {
+    --bg: #FDFBF7; --card: #FFFFFF; --chip: #F7F3EC; --border: #EEE6D9; --border2: #E4DCCC;
+    --text: #3A2E22; --muted: #8A6F52; --muted2: #A69477; --accent: #C1552B; --accent-bg: #FBEAE0;
+    --due-bg: #FBEAE0; --due-text: #9C4A22;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1E1A16; --card: #2A241E; --chip: #342C24; --border: #40372D; --border2: #4A4033;
+      --text: #F1E9DD; --muted: #C9B499; --muted2: #A99277; --accent: #E37048; --accent-bg: #3D2A20;
+      --due-bg: #3D2A20; --due-text: #E5987B;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 18px 16px 40px; min-height: 100vh; }
+  .center { padding: 60px 20px; text-align: center; color: var(--muted); }
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .htitle { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .htitle img { width: 26px; height: 26px; border-radius: 7px; }
+  .synctag { font-size: 11px; color: var(--muted2); }
+  .statrow { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  .stat { background: var(--chip); border-radius: 14px; padding: 12px 14px; flex: 1; min-width: 120px; }
+  .stat .l { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .stat .v { font-size: 19px; font-weight: 700; }
+  .sectionlabel { font-size: 12px; color: var(--muted); margin: 14px 0 8px; font-weight: 600; }
+  .chip { font-size: 11px; background: var(--chip); border-radius: 8px; padding: 4px 9px; color: var(--text); margin: 0 6px 6px 0; display: inline-block; }
+  .needsbox { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; }
+  .needsbox .bname { font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+  .needchip { font-size: 11px; border-radius: 8px; padding: 4px 9px; margin: 0 6px 6px 0; display: inline-block; background: var(--chip); color: var(--muted); }
+  .needchip.on { background: var(--due-bg); color: var(--due-text); font-weight: 700; }
+  .needextra { font-size: 12px; color: var(--text); margin-top: 4px; padding-top: 6px; border-top: 1px dashed var(--border); }
+  .needsempty { font-size: 11px; color: var(--muted2); }
+  .branchcard { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; }
+  .branchcard .bname { font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+  .badge { font-size: 11px; font-weight: 700; border-radius: 6px; padding: 2px 8px; }
+  .feedcard { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; }
+  .feedtop { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .feedtime { font-size: 11px; color: var(--muted2); }
+  .feedsummary { font-size: 12px; margin-bottom: 4px; }
+  .feedtotal { font-size: 13px; font-weight: 700; color: var(--accent); }
+  .setupbox { background: var(--accent-bg); border: 1px solid var(--accent); border-radius: 12px; padding: 14px; font-size: 12px; line-height: 1.6; }
+  .setupbox code { background: rgba(0,0,0,0.06); padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div id="app" class="wrap"><div class="center">Yuklanmoqda...</div></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc, collection, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+// === 1. SHU YERGA O'Z FIREBASE CONFIG'INGIZNI QO'YING ===
+// Firebase Console → Project settings → Your apps → SDK setup and configuration
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID",
+};
+// ==========================================================
+
+const BRANCH_NAMES = { b1: "1-filial", b2: "2-filial", b3: "3-filial" };
+const DEFAULT_NEEDS = ["O'tin", "Go'sht", "Un", "Gaz", "Pomidor", "Piyoz", "Limon"];
+const BRANCH_COLORS = {
+  b1: { bg: "#FBEAE0", text: "#C1552B" },
+  b2: { bg: "#EAF0E3", text: "#5A7A43" },
+  b3: { bg: "#E9EEF6", text: "#3E5C8A" },
+};
+
+const appEl = document.getElementById('app');
+const fmt = (n) => Math.round(n).toLocaleString('ru-RU');
+const timeStr = (ms) => new Date(ms).toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+
+function defaultBranchDoc(name) {
+  return {
+    name,
+    menu: [
+      { id: "m1", name: "Go'shtli somsa (tomchi)", price: 8000, stock: 40 },
+      { id: "m2", name: "Qatlama somsa", price: 9000, stock: 25 },
+    ],
+    drinks: [
+      { id: "d1", name: "Cola", price: 6000 },
+      { id: "d2", name: "Pepsi", price: 6000 },
+      { id: "d3", name: "Fanta", price: 6000 },
+    ],
+    sousPrice: 2000,
+    needsChecked: {},
+    needsExtra: "",
+    orders: [],
+    lastReport: Date.now(),
+  };
+}
+
+let db = null;
+let branchDocs = {};
+let lastSync = null;
+
+if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+  appEl.innerHTML = `<div class="setupbox">
+    <b>Sozlash kerak:</b><br/>
+    1) <a href="https://console.firebase.google.com" target="_blank">firebase.google.com</a>da bepul loyiha oching.<br/>
+    2) Build → Firestore Database → Create database (test mode) ni yoqing.<br/>
+    3) Project settings → General → Your apps → Web app (&lt;/&gt;) qo'shing, config'ni oling.<br/>
+    4) Shu index.html faylida <code>firebaseConfig</code> qismini o'z qiymatlaringizga almashtiring.<br/>
+    5) GitHub'ga push qiling, Pages'ni yoqing.
+  </div>`;
+} else {
+  try {
+    const fbApp = initializeApp(firebaseConfig);
+    db = getFirestore(fbApp);
+    subscribeAll();
+  } catch (e) {
+    appEl.innerHTML = `<div class="center">Firebase ulanish xatosi: ${e.message}</div>`;
+  }
+}
+
+async function ensureBranchDoc(id) {
+  const ref = doc(db, 'branches', id);
+  try {
+    const snap = await getDoc(ref);
+    if (!snap.exists()) await setDoc(ref, defaultBranchDoc(BRANCH_NAMES[id]));
+  } catch (e) { console.error(e); }
+}
+
+function subscribeAll() {
+  ['b1', 'b2', 'b3'].forEach(id => ensureBranchDoc(id));
+  onSnapshot(collection(db, 'branches'), (qsnap) => {
+    qsnap.forEach(d => { if (d.exists()) branchDocs[d.id] = { id: d.id, ...d.data() }; });
+    lastSync = Date.now();
+    renderBoss();
+  }, (err) => {
+    appEl.innerHTML = `<div class="center">Ulanishda xatolik: ${err.message}</div>`;
+  });
+}
+
+function renderBoss() {
+  const branches = ['b1', 'b2', 'b3'].map(id => branchDocs[id]).filter(Boolean);
+  if (branches.length === 0) { appEl.innerHTML = '<div class="center">Yuklanmoqda...</div>'; return; }
+
+  const today = new Date().toDateString();
+  const allToday = branches.flatMap(b => (b.orders || [])
+    .filter(o => new Date(o.time).toDateString() === today)
+    .map(o => ({ ...o, branchId: b.id, branchName: b.name }))
+  ).sort((a, b) => b.time - a.time);
+
+  const totalRevenue = allToday.reduce((s, o) => s + o.total, 0);
+
+  const needsBoxes = branches.map(b => {
+    const checked = b.needsChecked || {};
+    const anyChecked = DEFAULT_NEEDS.some(item => checked[item]);
+    return `<div class="needsbox">
+      <div class="bname">${b.name}</div>
+      <div>${DEFAULT_NEEDS.map(item => `<span class="needchip ${checked[item] ? 'on' : ''}">${checked[item] ? '✓ ' : ''}${item}</span>`).join('')}</div>
+      ${b.needsExtra ? `<div class="needextra">${b.needsExtra}</div>` : (anyChecked ? '' : '<div class="needsempty">Hozircha hech narsa kerak emas</div>')}
+    </div>`;
+  }).join('');
+
+  appEl.innerHTML = `
+    <div class="header">
+      <div class="htitle"><img src="icons/icon-192.png" alt="" />Tomchi Somsa</div>
+      <div class="synctag">${lastSync ? timeStr(lastSync) : ''}</div>
+    </div>
+    <div class="statrow">
+      <div class="stat"><div class="l">Bugungi buyurtmalar</div><div class="v">${allToday.length}</div></div>
+      <div class="stat"><div class="l">Bugungi tushum</div><div class="v">${fmt(totalRevenue)} so'm</div></div>
+    </div>
+    <div class="sectionlabel" style="margin-top:0">Ehtiyoj</div>
+    ${needsBoxes}
+    <div class="sectionlabel">Zaxira (filiallar bo'yicha)</div>
+    ${branches.map(b => `<div class="branchcard"><div class="bname">${b.name}</div>${b.menu.map(m => `<span class="chip">${m.name}: <b>${m.stock}</b></span>`).join('')}</div>`).join('')}
+    <div class="sectionlabel">Kirgan buyurtmalar</div>
+    ${allToday.length === 0 ? `<div style="font-size:12px;color:var(--muted2);padding:8px 0">Bugun hali buyurtma tushmadi.</div>` : allToday.map(o => {
+      const c = BRANCH_COLORS[o.branchId] || BRANCH_COLORS.b1;
+      return `<div class="feedcard">
+        <div class="feedtop"><span class="badge" style="background:${c.bg};color:${c.text}">${o.branchName}</span><span class="feedtime">${timeStr(o.time)}</span></div>
+        <div class="feedsummary">${o.summary}</div>
+        <div class="feedtotal">${fmt(o.total)} so'm</div>
+      </div>`;
+    }).join('')}
+  `;
+}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
