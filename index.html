@@ -71,7 +71,7 @@ const firebaseConfig = {
   appId: "1:884564157530:web:2e38ee4b0ce63da3852463",
 };
 
-const BRANCH_NAMES = { b1: "1-filial", b2: "2-filial", b3: "3-filial" };
+const BRANCH_NAMES = { b1: "Karvon", b2: "Metromall", b3: "5u5" };
 const DEFAULT_NEEDS = ["O'tin", "Go'sht", "Un", "Gaz", "Pomidor", "Piyoz", "Limon"];
 const BRANCH_COLORS = {
   b1: { bg: "#FBEAE0", text: "#C1552B" },
@@ -87,8 +87,10 @@ function defaultBranchDoc(name) {
   return {
     name,
     menu: [
-      { id: "m1", name: "Go'shtli somsa (tomchi)", price: 8000, stock: 40 },
-      { id: "m2", name: "Qatlama somsa", price: 9000, stock: 25 },
+      { id: "m1", name: "Go'shtli somsa (tomchi)", price: 11000, stock: 40 },
+      { id: "m2", name: "Go'shtli somsa (kichkina)", price: 8000, stock: 25 },
+      { id: "m3", name: "Tovuq-sirli somsa", price: 8000, stock: 25 },
+      { id: "m4", name: "Qiymali somsa", price: 7000, stock: 25 },
     ],
     drinks: [
       { id: "d1", name: "Cola", price: 6000 },
