@@ -62,17 +62,14 @@ import {
   getFirestore, doc, getDoc, setDoc, updateDoc, collection, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-// === 1. SHU YERGA O'Z FIREBASE CONFIG'INGIZNI QO'YING ===
-// Firebase Console → Project settings → Your apps → SDK setup and configuration
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID",
+  apiKey: "AIzaSyCDp2Gs35nbz-zjN-EhT5VouQhIb-Hd-dY",
+  authDomain: "tomchi-somsa-boshqaruv.firebaseapp.com",
+  projectId: "tomchi-somsa-boshqaruv",
+  storageBucket: "tomchi-somsa-boshqaruv.firebasestorage.app",
+  messagingSenderId: "884564157530",
+  appId: "1:884564157530:web:2e38ee4b0ce63da3852463",
 };
-// ==========================================================
 
 const BRANCH_NAMES = { b1: "1-filial", b2: "2-filial", b3: "3-filial" };
 const DEFAULT_NEEDS = ["O'tin", "Go'sht", "Un", "Gaz", "Pomidor", "Piyoz", "Limon"];
